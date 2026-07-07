@@ -53,19 +53,19 @@ Each plate is one thing a frontier model does internally, pulled out and made ex
 
 ---
 
-## Does it actually work?
+## How we measure
 
-We benchmark the **plates in isolation** — so the model's raw ability is factored out and you see the *exoskeleton's* contribution, not the model's.
+Prism benchmarks each **plate in isolation** — so the model's raw ability is factored out and you see the *exoskeleton's* contribution, not the model's. Measuring a final patch mostly measures whether the model can code (which the harness can't change); measuring the plates shows what Prism actually adds.
 
-| Plate | What we measured | Bare model | With Prism |
-|---|---|:---:|:---:|
-| Context | did it surface the right files? | — | **0.94** |
-| Verification | accept good / reject bad / rank | — | **5 / 5** |
-| Reasoning | picked the right files to change | 0.69 | **0.84 (+22%)** |
+Run it yourself:
 
-**On the same local model, the exoskeleton made its reasoning 22% better** — measured on planning, where the model writes no code, so it's the *harness's* gain, not the model's.
+```bash
+# model-free plates (context, verification)
+PYTHONPATH=src python benchmarks/layer_bench.py --layers context,verify
 
-> **Honest caveat:** early numbers (1 trial, 16 tasks, `qwen3:4b`). Directional, not a leaderboard — and reproducible: `python benchmarks/layer_bench.py`.
+# model-dependent plates (needs Ollama)
+PYTHONPATH=src python benchmarks/layer_bench.py --model qwen3:8b --layers reasoning,tools
+```
 
 ---
 
