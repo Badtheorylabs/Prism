@@ -2,9 +2,9 @@
 
 # Prism
 
-### The runtime around the weights.
+### Frontier intelligence, assembled — not bought.
 
-**Give a small, local LLM the scaffolding a frontier product has around it — whole-repo context, planning, tools, and execution-grounded verification — and it does real work on _your_ machine.**
+**A laptop-sized model behaves frontier-level not because it _is_ one — but because it's wearing the exoskeleton of one.**
 
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -16,70 +16,63 @@
 
 ---
 
-> ### The bet
-> Everyone is racing to scale models. But a huge share of what makes frontier AI *feel* frontier **isn't in the weights** — it's the **harness** around them: how they pull the right context, plan, call tools, and check their own work.
->
-> **Prism extracts that harness, makes it pluggable, and points it at open models you run for free — on your laptop.** Not a bigger model. The missing runtime around a small one.
+## The principle
 
----
+A frontier model isn't just big weights. It's big weights **plus** a huge amount of scaffolding it runs *silently in its head* — holding the whole repo in attention, planning multi-step, checking its own work, recalling facts, orchestrating tools, reasoning before it answers. Small models have thinner weights **and** they don't do that internal scaffolding well.
 
-## Why Prism
+**Prism externalizes the scaffolding.** It takes each thing a big model does implicitly and makes it an explicit, deterministic, inspectable module *outside* the model — then runs a small, local model through the modules.
 
-A frontier model "reads your whole codebase," plans multi-step, uses tools, and verifies its work — by brute-forcing it with enormous context and scale. A local 8B can't. **Prism gives it the missing runtime instead of the missing parameters.**
+> Intelligence moves from inside the weights to inside the harness.
 
-- **Whole-repo awareness** — without a million-token context window
-- **It runs your tests** — verification is grounded in *execution*, never a weak model judging itself
-- **Tools that don't fumble** — structured, schema-enforced tool-calling
-- **Plans it can act on** — tasks decomposed into grounded, bounded steps
-- **Every run is traced** — see exactly *which layer* moved the needle
-- **Not just code** — swap one component and the same harness does data, research, ops
-- **Local-first** — stdlib-only core, runs on consumer hardware via [Ollama](https://ollama.com)
-- **Model-agnostic** — Qwen today, whatever's best tomorrow. **The harness is yours.**
+Not a context tool. Not a prompt pack. **An inference-time capability layer** — a small-model runtime where frontier behavior is *assembled* from pluggable, model-agnostic modules instead of *bought* in the weights. It's the bet the whole field is making — test-time compute over bigger models — productized as reusable plugins, so any open model on your own hardware inherits all of it.
 
 ---
 
 ## The exoskeleton
 
-Prism decomposes "frontier behavior" into **pluggable, model-agnostic layers** and orchestrates a small model through them. Frontier behavior comes from the harness — not the weights.
+Each plate is one thing a frontier model does internally, pulled out and made explicit. Snap them onto a small model and it starts behaving like a big one.
 
-| Layer | What it does | Status |
-|---|---|:---:|
-| **Context** | Whole-repo code graph + retrieval + agentic exploration + LSP-style navigation, packed to a token budget | Live |
-| **Reasoning** | Decompose a task into grounded, bounded steps the model can actually execute | Live |
-| **Tools** | Hardened tool routing — constrained decoding, schema validation, fuzzy repair | Live |
-| **Verification** | **Execution-grounded** — runs tests/compile on a sandboxed copy; never self-judges | Live |
-| **Trace** | Records every run — context, calls, checks, repairs — so you can see what helped | Live |
-| **Memory** | Learns across runs: what worked, which files change together | Live |
-| **Domains** | Swap the checker and the same loop works **beyond coding** | Live |
+| Plate | The frontier does it *in its head* | Prism makes it an explicit module | Status |
+|---|---|---|:---:|
+| **Context** | holds the whole repo in attention | code graph + retrieval + agentic exploration, packed to a token budget | Live |
+| **Reasoning** | plans long chains internally | a decomposer that holds the plan as state and feeds the model one bounded step at a time | Live |
+| **Tools** | orchestrates tools cleanly | a strict-schema router with constrained decoding + repair, so a weak model can't fumble the mechanics | Live |
+| **Verification** | is "right more often" | compile / test / lint on a sandboxed copy — the compiler as a free, frontier-grade judge (never self-judging) | Live |
+| **Critique** | catches its own errors | an adversarial reviewer feeding a repair loop | Live |
+| **Trace + Memory** | remembers what worked | every run recorded; learns which moves and files win | Live |
+| **Grounding** | "knows more" | retrieval over docs / APIs / the web — look it up instead of knowing it | Planned |
+| **Ensemble** | one big brain | many small passes, fanned out and judged | Planned |
 
 ```
-  task ──▶ CONTEXT ──▶ model ──▶ TOOLS ──▶ edit ──▶ VERIFY (run tests) ──▶ done
-                         ▲                                │
-                         └────────── repair ◀─────────────┘   (all recorded to TRACE)
+  task ──▶ CONTEXT ──▶ model ──▶ TOOLS ──▶ act ──▶ VERIFY (run it) ──▶ done
+                         ▲                              │
+                         └────────── repair ◀───────────┘   (every step → TRACE → MEMORY)
 ```
+
+**Context was the first plate. The aim is the whole suit.**
 
 ---
 
 ## Does it actually work?
 
-We benchmark the **layers in isolation** — so the model's raw coding ability is factored out and you see *Prism's* contribution, not the model's.
+We benchmark the **plates in isolation** — so the model's raw ability is factored out and you see the *exoskeleton's* contribution, not the model's.
 
-| Layer | What we measured | Bare model | With Prism |
+| Plate | What we measured | Bare model | With Prism |
 |---|---|:---:|:---:|
-| Context | did it retrieve the right files? | — | **0.94** |
-| Verify | accept good / reject bad / rank | — | **5 / 5** |
+| Context | did it surface the right files? | — | **0.94** |
+| Verification | accept good / reject bad / rank | — | **5 / 5** |
 | Reasoning | picked the right files to change | 0.69 | **0.84 (+22%)** |
 
-**On the same local model, Prism made its reasoning 22% better** — measured on planning, where the model writes no code, so it's *Prism's* gain, not the model's.
+**On the same local model, the exoskeleton made its reasoning 22% better** — measured on planning, where the model writes no code, so it's the *harness's* gain, not the model's.
 
-> **Honest caveat:** early numbers (1 trial, 16 tasks, `qwen3:4b`). Directional, not a leaderboard — and fully reproducible: `python benchmarks/layer_bench.py`.
+> **Honest caveat:** early numbers (1 trial, 16 tasks, `qwen3:4b`). Directional, not a leaderboard — and reproducible: `python benchmarks/layer_bench.py`.
 
 ---
 
 ## Quickstart
 
 ```bash
-# 1. grab any local model
+# 1. any local model
 ollama pull qwen3:8b
 
 # 2. clone — the core is stdlib-only, nothing to pip install to try it
@@ -88,34 +81,31 @@ git clone https://github.com/Badtheorylabs/Prism && cd Prism
 # 3. see it instantly (indexes a tiny app, returns a budget-packed dossier)
 PYTHONPATH=src python -m prism.cli demo
 
-# 4. drive a REAL local model end-to-end:
-#    context -> edit -> run the tests -> repair -> accept only if green
+# 4. run a REAL local model through the exoskeleton:
+#    context -> act -> run the tests -> repair -> accept only if green
 PYTHONPATH=src python -m prism.cli harden "add per-user rate limiting to login" \
     --repo examples/demo_repo --model qwen3:8b --ttc
 ```
 
 **The toolbox** (`python -m prism.cli <cmd>`):
 
-| Command | What it does |
-|---|---|
-| `demo` | Instant proof — packs a repo into a small-model-sized dossier |
-| `context` / `explore` | Whole-repo context + agentic graph exploration (no model needed) |
-| `plan` | Decompose a task into steps (graph-derived or model-refined) |
-| `tools` | Drive a model through the hardened tool loop |
-| `harden` | Generate -> **run tests** -> repair, with adaptive test-time compute |
-| `trace` / `memory` | Inspect what happened and what the runtime learned |
-| `data` | A **non-coding** task through the same harness (proof it generalizes) |
+| Command | Plate | What it does |
+|---|---|---|
+| `context` / `explore` | Context | whole-repo context + agentic graph exploration (no model needed) |
+| `plan` | Reasoning | decompose a task into grounded, bounded steps |
+| `tools` | Tools | drive a model through the hardened tool loop |
+| `harden` | Verification | generate -> **run tests** -> repair, with adaptive test-time compute |
+| `trace` / `memory` | Trace + Memory | inspect what happened and what the runtime learned |
+| `data` | Domains | a **non-coding** task through the same harness |
+| `demo` | — | instant proof on a bundled app |
 
-Optional install for the `prism` command + extras:
-```bash
-pip install -e ".[mcp,tokens]"
-```
+Optional install for the `prism` command + extras: `pip install -e ".[mcp,tokens]"`
 
 ---
 
 ## Not just code
 
-The truth loop is **domain-agnostic**. For code it's tests. Swap the checker and the *same* harness — context, model, verify, repair, trace — does other work:
+The exoskeleton is domain-agnostic. Verification for code is tests. Swap that one plate and the *same* runtime — context, model, verify, repair, trace — does other work:
 
 | Domain | The truth signal |
 |---|---|
@@ -134,12 +124,12 @@ Stdlib-only core. No tree-sitter grammars, no embedding downloads, no cloud.
 
 ```
 src/prism/
-├── context.py · graph.py · semantic.py · packer.py   # Layer 1 — Context
+├── context.py · graph.py · semantic.py · packer.py   # Context
 ├── explorer.py · lsp.py                               #   + agentic search / nav
-├── planner.py                                         # Layer 2 — Reasoning
-├── tools.py                                           # Layer 3 — Tools
-├── execution.py · verifier.py · ttc.py                # Layer 4 — Verification
-├── trace.py · memory.py                               # Spine + Memory
+├── planner.py                                         # Reasoning
+├── tools.py                                           # Tools
+├── execution.py · verifier.py · ttc.py                # Verification + Critique
+├── trace.py · memory.py                               # Trace + Memory
 ├── checkers.py · domains.py                           # Beyond-coding
 └── llm.py                                             # model backend (Ollama)
 ```
@@ -150,14 +140,14 @@ src/prism/
 
 > Frontier capability = **weights × harness.** The labs pour billions into the first term. Prism owns the second — and makes it local, inspectable, and model-agnostic.
 
-Every time open models get better, Prism gets better *for free*. The model is a swappable part; **the runtime is the moat.**
+Every time open models get better, Prism gets better *for free*. The model is a swappable part; **the exoskeleton is the moat.**
 
 ---
 
 ## Status and roadmap
 
-**Live:** Context, Reasoning, Tools, Verification, Trace, Memory, Domain packs.
-**Next:** more domain packs, multi-trial benchmarks, richer agentic exploration, MLX / vLLM backends.
+**Live:** Context, Reasoning, Tools, Verification, Critique, Trace, Memory, Domain packs.
+**Next:** Grounding (docs/web retrieval), Ensemble (fan-out + judge), multi-trial benchmarks, MLX / vLLM backends.
 
 Contributions welcome — this is early, opinionated, and moving fast.
 
@@ -167,6 +157,6 @@ Contributions welcome — this is early, opinionated, and moving fast.
 
 **Built by [Bad Theory Labs](https://github.com/Badtheorylabs).** MIT licensed.
 
-*Small models. Big scaffolding. Runs on your laptop.*
+*Small model. Whole exoskeleton. Runs on your laptop.*
 
 </div>
