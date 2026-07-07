@@ -1,0 +1,32 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+wheels/
+*.so
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+.bench-venv/
+
+# --- Prism runtime artifacts ---
+.prism/
+*.db
+*.sqlite3
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# --- Internal working docs (research/strategy notes, not for the public repo) ---
+docs/
